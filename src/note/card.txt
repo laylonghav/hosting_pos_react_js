@@ -1,0 +1,56 @@
+import { useEffect, useState } from "react";
+
+import Card from "./components/Card/Card";
+
+const App = () => {
+  const [product, setProduct] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchingData = async () => {
+      setLoading(false);
+      const res = await fetch("https://dummyjson.com/products");
+      if (res) {
+        setLoading(true);
+      }
+
+      const data = await res.json();
+
+      setProduct(data.products);
+      console.log(data.products);
+    };
+
+    fetchingData();
+  }, []);
+
+  const onAddToCard = (itemAddToCart) => {
+    console.log(`item add to card : ${JSON.stringify(itemAddToCart)}`);
+  };
+
+  return (
+    <div>
+      <div className="">
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          {product.map((item, index) => {
+            return (
+              <Card
+                key={index}
+                loading={loading}
+                price={item.price}
+                description={item.description}
+                rating={item.rating}
+                images={item.images}
+                availabilityStatus={item.availabilityStatus}
+                title={item.title}
+                stock={item.stock}
+                onAddToCard={() => onAddToCard(item)}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

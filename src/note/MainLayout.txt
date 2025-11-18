@@ -1,0 +1,244 @@
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Box,
+  BoxIcon,
+  Group,
+  Home,
+  Menu,
+  ShoppingCart,
+  User,
+  User2,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "../ui/drawer";
+import { useSelector } from "react-redux";
+import CartProduct from "../Card/CartProduct";
+
+function Sidebar({ isOpen, setIsOpen, isOpenDesktop, setIsOpenDesktop }) {
+  const nav_item = [
+    {
+      to: "/",
+      label: "Home",
+      icon: <Home />,
+    },
+    {
+      to: "/pos",
+      label: "Pos",
+      icon: <Home />,
+    },
+    {
+      to: "/product",
+      label: "Product",
+      icon: <BoxIcon />,
+    },
+    {
+      to: "/user",
+      label: "User",
+      icon: <User2 />,
+    },
+    {
+      to: "/brand",
+      label: "Brand",
+      icon: <User2 />,
+    },
+    {
+      to: "/category",
+      label: "Category",
+      icon: <Group />,
+    },
+  ];
+  return (
+    <div>
+      {/* Mobile screen */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ x: -250, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -250, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-gray-700 fixed left-0 h-full w-64 z-[60] shadow-4xl"
+          >
+            <div className=" py-4 px-5 flex justify-between items-center border-b border-b-gray-50">
+              <h1 className="text-white">Admin</h1>
+              <button
+                className="p-1 text-white hover:bg-gray-300 hover:text-black rounded"
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                <X />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-5 py-5 px-5">
+              {nav_item.map((item, index) => (
+                <NavLink
+                  key={index}
+                  className={({ isActive }) =>
+                    `p-2 px-5  rounded-4xl flex gap-3 ${
+                      isActive ? "bg-blue-600 text-white" : "bg-gray-300"
+                    }`
+                  }
+                  to={item.to}
+                >
+                  {item.icon}
+                  <div className="">{item.label}</div>
+                </NavLink>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop screen */}
+      {isOpenDesktop && (
+        <motion.aside
+          initial={{ x: 0, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 0, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-gray-700 hidden md:block fixed left-0 h-full w-64 shadow-4xl"
+        >
+          <div className=" py-4 px-5 flex justify-between items-center border-b border-b-gray-50">
+            <h1 className="text-white">Admin</h1>
+            <button
+              className="p-1 text-white hover:bg-gray-300 hover:text-black rounded"
+              onClick={() => setIsOpenDesktop(false)}
+            >
+              <X />
+            </button>
+          </div>
+          <div className="flex flex-col gap-5 py-5 px-5">
+            {nav_item.map((item, index) => (
+              <NavLink
+                key={index}
+                className={({ isActive }) =>
+                  `p-2 px-5  rounded-4xl flex gap-3 ${
+                    isActive ? "bg-blue-600 text-white" : "bg-gray-300"
+                  }`
+                }
+                to={item.to}
+              >
+                {item.icon}
+                <div className="">{item.label}</div>
+              </NavLink>
+            ))}
+          </div>
+        </motion.aside>
+      )}
+    </div>
+  );
+}
+
+export default function MainLayout() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenDesktop, setIsOpenDesktop] = useState(true);
+  const [isOpenDrawer, setIsOpenDrawer] = useState(false);
+  const cart = useSelector((state) => state.cart);
+
+  const totalQty = cart.reduce((acc, item) => acc + Number(item.qty), 0);
+  const originalTotal = cart.reduce(
+    (acc, item) => acc + Number(item.qty) * Number(item?.price),
+    0
+  );
+
+  const dicount = cart.reduce(
+    (acc, item) =>
+      acc +
+      (item.dicount
+        ? (Number(item.dicount * Number(item.price)) / 100) * Number(item.qty)
+        : 0),
+    0
+  );
+  const total = originalTotal - dicount;
+  return (
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+
+      <Sidebar
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        isOpenDesktop={isOpenDesktop}
+        setIsOpenDesktop={setIsOpenDesktop}
+      />
+
+      {/* Contain */}
+      <div
+        className={`flex-1 flex flex-col  transition-all duration-300 ${
+          isOpenDesktop ? "md:ml-64" : ""
+        }`}
+      >
+        {/* header */}
+        <header className="py-4 px-4 flex  justify-between items-center bg-gray-300 sticky top-0 z-[50]">
+          <button
+            className="p-1 hover:bg-gray-100 rounded hidden md:inline-flex"
+            onClick={() => setIsOpenDesktop(!isOpenDesktop)}
+          >
+            <Menu />
+          </button>
+          <button
+            className="p-1 hover:bg-gray-100 rounded md:hidden"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <Menu />
+          </button>
+          <div className="flex gap-5 items-center">
+            <h1>Dashboard</h1>
+            <div className="">
+              <Button
+                onClick={() => setIsOpenDrawer(true)}
+                variant={"ouline"}
+                className={"cursor-pointer"}
+              >
+                <ShoppingCart className="size-8" />
+              </Button>
+
+              <Drawer open={isOpenDrawer} onOpenChange={setIsOpenDrawer}>
+                <DrawerContent
+                  data-vaul-drawer-direction="right"
+                  className={"w-80"}
+                >
+                  <DrawerHeader>
+                    <div className="flex justify-between px-5">
+                      <button
+                        className="p-1 bg-gray-300  hover:bg-gray-400 transition-all duration-300 hover:scale-105 hover:text-black rounded"
+                        onClick={() => setIsOpenDrawer(false)}
+                      >
+                        <X />
+                      </button>
+                      <DrawerTitle>Shopping Cart</DrawerTitle>
+                    </div>
+                  </DrawerHeader>
+                  <div className="flex flex-col gap-4 px-2">
+                    {Array.isArray(cart) && cart.length === 0 ? (
+                      <div>
+                        <h1>No cart</h1>
+                      </div>
+                    ) : (
+                      <>
+                        {cart.map((item, index) => (
+                          <CartProduct key={index} product={item} />
+                        ))}
+                      </>
+                    )}
+                  </div>
+                  <div className="">
+                    <p>{totalQty}</p>
+                    <p>{originalTotal}</p>
+                  </div>
+                </DrawerContent>
+              </Drawer>
+            </div>
+          </div>
+        </header>
+
+        {/* Contain area */}
+        <main className="flex-1  p-5">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}

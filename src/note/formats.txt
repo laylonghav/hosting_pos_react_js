@@ -1,0 +1,13 @@
+export const formatDate = (data) => {
+  return new Date(data).toLocaleDateString();
+};
+
+==============dayjs================
+
+import dayjs from "dayjs";
+
+const formatDate = (data, format = "DD-MM-YYYY") => {
+  return dayjs(data).format(format);
+};
+
+export { formatDate };

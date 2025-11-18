@@ -1,0 +1,52 @@
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = [];
+
+const purchaseSlice = createSlice({
+  name: "purchase",
+  initialState,
+  reducers: {
+    addProduct: (state) => {
+      if (!Array.isArray(state)) {
+        return [
+          {
+            product_id: "",
+            cost: 0,
+            qty: 1,
+            retail_price: 0,
+            ref: "",
+            remark: "",
+          },
+        ];
+      }
+      state.push({
+        product_id: "",
+        cost: 0,
+        qty: 1,
+        retail_price: 0,
+        ref: "",
+        remark: "",
+      });
+    },
+
+    updateProduct: (state, action) => {
+      const { index, field, value } = action.payload;
+      if (state[index]) {
+        state[index][field] = value;
+      }
+    },
+
+    removeProduct: (state, action) => {
+      const index = action.payload;
+      if (index >= 0 && index < state.length) {
+        state.splice(index, 1);
+      }
+    },
+
+    resetProduct: () => initialState,
+  },
+});
+
+export const { addProduct, updateProduct, removeProduct, resetProduct } =
+  purchaseSlice.actions;
+export default purchaseSlice.reducer;

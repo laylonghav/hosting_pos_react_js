@@ -1,0 +1,177 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Edit, Plus, Save, Search, Trash, X } from "lucide-react";
+import { useState } from "react";
+
+const UserAdminPage = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [query, setQuery] = useState("");
+  const [data, setData] = useState([
+    {
+      id: 1,
+      username: "hav",
+      password: "123",
+      role: "user",
+    },
+  ]);
+  const [form, setForm] = useState({
+    id: "",
+    username: "",
+    password: "",
+    role: "",
+  });
+  function onSubmit(e) {
+    e.preventDefault();
+    console.log(form);
+    if (isEdit) {
+      const index = data.findIndex((user) => user.id === form.id);
+      if (index !== -1) {
+        const dataUpdate = [...data];
+        dataUpdate[index] = { ...dataUpdate[index], ...form };
+        setData(dataUpdate);
+        setIsEdit(false);
+      }
+    } else {
+      setData([...data, { ...form, id: Date.now() }]);
+    }
+
+    setIsOpen(false);
+    setForm({ id: "", username: "", password: "", role: "" });
+  }
+  function OnEdite(itemEdit) {
+    setForm({ ...itemEdit });
+    setIsOpen(true);
+    setIsEdit(true);
+  }
+  function OnDelete(itemDelete) {
+    setData(data.filter((item) => item.id !== itemDelete.id));
+  }
+
+  const DataFilter = data.filter(
+    (user) =>
+      user.username.toLowerCase().includes(query.toLowerCase()) ||
+      user.role.toLowerCase().includes(query.toLowerCase())
+  );
+  return (
+    <div>
+      <div className="flex justify-between">
+        <div className="flex  gap-3">
+          <Input
+            value={query}
+            placeholder="Search"
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Button>
+            <Search />
+          </Button>
+        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger>
+            <Button>
+              <Plus />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ara you sure ?</DialogTitle>
+              <DialogDescription>Good everything.</DialogDescription>
+            </DialogHeader>
+            <form action="" onSubmit={onSubmit}>
+              <div className="grid gap-4">
+                <div className="grid gap-3">
+                  <Label>Username</Label>
+                  <Input
+                    value={form.username}
+                    placeholder="Username"
+                    onChange={(e) =>
+                      setForm((pre) => ({ ...pre, username: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label>Password</Label>
+                  <Input
+                    value={form.password}
+                    placeholder="Password"
+                    onChange={(e) =>
+                      setForm((pre) => ({ ...pre, password: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label>role</Label>
+                  <Input
+                    value={form.role}
+                    placeholder="Role"
+                    onChange={(e) =>
+                      setForm((pre) => ({ ...pre, role: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+              <div className="flex mt-5 gap-4 justify-end">
+                <Button type="submit">
+                  <Save />
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="mt-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Id</TableHead>
+              <TableHead>Username</TableHead>
+              <TableHead>Password</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {DataFilter.map((item, index) => (
+              <TableRow key={index}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{item.username}</TableCell>
+                <TableCell>{item.password}</TableCell>
+                <TableCell>{item.role}</TableCell>
+
+                <TableCell className={"flex gap-3"}>
+                  <Button onClick={() => OnEdite(item)}>
+                    <Edit />
+                  </Button>
+                  <Button onClick={() => OnDelete(item)}>
+                    <Trash />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+
+export default UserAdminPage;

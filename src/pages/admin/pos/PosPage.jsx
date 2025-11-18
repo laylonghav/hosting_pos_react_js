@@ -1,0 +1,96 @@
+import ProdcutCard from "@/components/Card/ProductCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { addToCart } from "@/store/cartSlice";
+import { setRefresh } from "@/store/refreshSlice";
+
+import { request } from "@/util/request/request";
+import { Search, SearchSlash } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+export default function PosPage() {
+  const [product, setProduct] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const fetchingData = async () => {
+    setLoading(true);
+    const res = await request("product", "get");
+    if (res) {
+      console.log(res?.data);
+      setProduct(res?.data);
+      setLoading(false);
+    }
+  };
+  const dispatch = useDispatch();
+  const refresh = useSelector((state) => state.refresh.value);
+  console.log("Refresh", refresh ? "Yes" : "NO");
+
+  useEffect(() => {
+    fetchingData();
+    if (refresh) {
+      fetchingData();
+      dispatch(setRefresh(false));
+    }
+  }, [refresh, dispatch]);
+
+  const btnAddToCart = (itemAddToCart) => {
+    console.log(itemAddToCart);
+    dispatch(addToCart(itemAddToCart));
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between">
+        <div className="flex items-center gap-4">
+          <h1>Product </h1>
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placehoder="Search product"
+          />
+          <Button
+            onClick={async () => {
+              setLoading(true);
+              const res = await request(`product/search/?q=${query}`, "get");
+              if (res) {
+                setLoading(false);
+                console.log("Search Product : ", res);
+                setProduct(res?.data);
+              }
+            }}
+          >
+            <Search />
+          </Button>
+          <Button
+            onClick={() => {
+              fetchingData();
+              setQuery("");
+            }}
+          >
+            <SearchSlash />
+          </Button>
+        </div>
+        <div className=""></div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2  xl:grid-cols-3">
+        {loading ? (
+          <div className="col-span-3 flex justify-center mt-20">
+            <Spinner className={"size-10"} />
+          </div>
+        ) : (
+          <>
+            {product?.map((item, index) => (
+              <ProdcutCard
+                key={index}
+                product={{ ...item, btnAddToCart: () => btnAddToCart(item) }}
+              />
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

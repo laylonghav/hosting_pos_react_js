@@ -1,0 +1,24 @@
+import React from "react";
+import { Bar, BarChart, CartesianAxis, Tooltip, XAxis, YAxis } from "recharts";
+
+function PuchaseChart({ data }) {
+  const chartData = data?.flatMap((purchase) =>
+    purchase.product_purchase.map((item) => ({
+      name: item.product?.name,
+      total: Number(item.qty) * Number(item.cost),
+    }))
+  );
+  return (
+    <div>
+      <BarChart width={600} height={600} data={chartData}>
+        <CartesianAxis strokeDasharray={"3 3"} />
+        <XAxis dataKey={"name"} />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey={"total"} />
+      </BarChart>
+    </div>
+  );
+}
+
+export default PuchaseChart;

@@ -1,0 +1,242 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  addProduct,
+  removeProduct,
+  updateProduct,
+} from "@/store/purchaseSlice";
+import { request } from "@/util/request/request";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+export default function PurchasePage() {
+  const [supplier, setSupplier] = useState([]);
+  const [product, setProduct] = useState([]);
+  const [supplierId, setSupplierId] = useState("");
+  const [paid, setPaid] = useState(0);
+  const [paidDate, setPaidDate] = useState("");
+
+  const purchase = useSelector((state) => state.purchase);
+
+  const fechingData = async () => {
+    const res = await request("supplier", "get");
+    const prodcut = await request("product", "get");
+    if (res?.data) {
+      setSupplier(res?.data);
+      setProduct(prodcut?.data);
+      console.log(res?.data);
+    }
+  };
+
+  useEffect(() => {
+    fechingData();
+    // console.log(purchase);
+  }, []);
+
+  const dispatch = useDispatch();
+
+  const table_header = [
+    "Product",
+    "Cost",
+    "Quantity",
+    "Retail price",
+    "Ref",
+    "Remark",
+    "Action",
+  ];
+  const onAddProduct = () => {
+    dispatch(addProduct());
+  };
+
+  const onChageInput = (index, field, value) => {
+    dispatch(updateProduct({ index, field, value }));
+  };
+
+  const total = purchase?.reduce(
+    (acc, item) => acc + item?.qty * item?.cost,
+    0
+  );
+
+  const onSavePurchase = () => {
+    console.log("Saving purchase", purchase);
+    const data = {
+      supplier_id: supplierId,
+      paid: paid,
+      paid_date: paidDate,
+      product_purchase: purchase,
+    };
+    console.log("Saving purchase", data);
+  };
+
+  return (
+    <div>
+      <div className="">Create Purchase</div>
+      <div className="flex gap-2 mt-5">
+        <div className="flex flex-col gap-2 w-full">
+          <Label className={"text-center"}>Supplier</Label>
+          <Select
+            className={"w-full"}
+            value={supplierId}
+            onValueChange={(value) => setSupplierId(value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Pls select supplier" />
+            </SelectTrigger>
+            <SelectContent>
+              {supplier?.map((item, index) => (
+                <SelectItem key={index} value={item?.id}>
+                  {item?.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+          <Label className={"text-center"}>Paid</Label>
+          <Input
+            value={paid}
+            onChange={(e) => setPaid(e.target.value)}
+            placeholder="Paid"
+          />
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+          <Label className={"text-center"}>Paid Date</Label>
+          <Input
+            className={"w-full"}
+            type={"date"}
+            value={paidDate}
+            onChange={(e) => setPaidDate(e.target.value)}
+            placeholder="Paid"
+          />
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {table_header?.map((item, index) => (
+                <TableHead key={index}>{item}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.isArray(purchase) &&
+              purchase?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Select
+                      value={item?.id}
+                      onValueChange={(value) =>
+                        onChageInput(index, "product_id", value)
+                      }
+                    >
+                      <SelectTrigger className={"w-48"}>
+                        <SelectValue placeholder="Pls select product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {product?.map((item, index) => (
+                          <SelectItem key={index} value={item?.id}>
+                            {item?.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type={"Number"}
+                      value={item?.cost}
+                      onChange={(e) =>
+                        onChageInput(index, "cost", Number(e.target.value))
+                      }
+                      placeholder="Cost"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type={"Number"}
+                      value={item?.qty}
+                      onChange={(e) =>
+                        onChageInput(index, "qty", Number(e.target.value))
+                      }
+                      placeholder="Quantity"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type={"Number"}
+                      value={item?.retail_price}
+                      onChange={(e) =>
+                        onChageInput(
+                          index,
+                          "retail_price",
+                          Number(e.target.value)
+                        )
+                      }
+                      placeholder="Retail price"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={item?.ref}
+                      onChange={(e) =>
+                        onChageInput(index, "ref", e.target.value)
+                      }
+                      placeholder="Ref"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={item?.remark}
+                      onChange={(e) =>
+                        onChageInput(index, "remark", e.target.value)
+                      }
+                      placeholder="Remark"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => {
+                        dispatch(removeProduct(index));
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+        <div className="mt-5 flex justify-between">
+          <div className="">
+            <Button onClick={onAddProduct}> Add Product</Button>
+          </div>
+          <div className="">
+            <h1 className="font-bold text-lg mb-5">Total : {total}</h1>
+            <div className="flex  gap-2">
+              <Button>cancel</Button>
+              <Button onClick={onSavePurchase}>Save Purchase</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

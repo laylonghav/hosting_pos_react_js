@@ -1,0 +1,238 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import axios from "axios";
+import { Edit, Plus, Search, SearchSlash, Trash } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+function BrandPage() {
+  const [brand, setBrand] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [query, setQuery] = useState("");
+  const [form, setForm] = useState({
+    id: "",
+    name: "",
+    description: "",
+  });
+
+  const fetchingData = async () => {
+    setLoading(true);
+    const res = await axios.get("http://127.0.0.1:8000/api/brand");
+    if (res) {
+      console.log(res);
+      setBrand(res.data.data);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchingData();
+  }, []);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    if (isEdit) {
+      const res = await axios.put(
+        `http://127.0.0.1:8000/api/brand/${form.id}`,
+        form
+      );
+      if (res) {
+        console.log(res);
+        fetchingData();
+      }
+
+      setIsEdit(false);
+    } else {
+      const res = await axios.post("http://127.0.0.1:8000/api/brand", form);
+      if (res) {
+        console.log(res);
+        fetchingData();
+      }
+    }
+
+    setForm({
+      id: "",
+      name: "",
+      description: "",
+    });
+    setIsOpen(false);
+    console.log(form);
+  };
+
+  const table_header = ["No", "Name", "Description", "Action"];
+
+  const onEdit = (itemEdit) => {
+    console.log(itemEdit);
+    setForm(itemEdit);
+    setIsOpen(true);
+    setIsEdit(true);
+  };
+  const onDelete = async (itemDelete) => {
+    const res = await axios.delete(
+      `http://127.0.0.1:8000/api/brand/${itemDelete.id}`
+    );
+    if (res) {
+      console.log(res);
+      fetchingData();
+    }
+    console.log(itemDelete);
+  };
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-4 items-center">
+          <h1>Brand</h1>
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="search brand"
+          />
+          <Button
+            onClick={async () => {
+              const res = await axios.get(
+                `http://127.0.0.1:8000/api/brand/search/?q=${query}`
+              );
+              if (res) {
+                console.log(query);
+                console.log(res);
+                setBrand(res.data.data);
+              }
+            }}
+          >
+            <Search />
+          </Button>
+          <Button
+            onClick={() => {
+              fetchingData();
+            }}
+          >
+            <SearchSlash />
+          </Button>
+        </div>
+
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger>
+            <Button>
+              <Plus />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {isEdit ? "Update brand" : "Create brand"}{" "}
+              </DialogTitle>
+            </DialogHeader>
+
+            <form action="" onSubmit={onSubmit}>
+              <div className="flex flex-col gap-5">
+                <div className="flex gap-3 flex-col">
+                  <Label>Name</Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Name"
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 flex-col">
+                  <Label>Description</Label>
+                  <Input
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                    placeholder="Description"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mt-5 flex justify-end">
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setIsEdit(false);
+                      setIsOpen(false);
+                      setForm({
+                        id: "",
+                        name: "",
+                        description: "",
+                      });
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button type="submit">{isEdit ? "Update" : "Save"}</Button>
+                </div>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+      {/* <h1>{brand[0]?.name}</h1> */}
+      <div className="mt-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {table_header.map((item, index) => (
+                <TableHead key={index}>{item}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <div className="flex justify-center mt-5">
+                    <Spinner className={"size-6"} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              <>
+                {brand.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{item?.name}</TableCell>
+                    <TableCell>{item?.description}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-4">
+                        <Button onClick={() => onEdit(item)}>
+                          <Edit />
+                        </Button>
+                        <Button onClick={() => onDelete(item)}>
+                          <Trash />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+export default BrandPage;

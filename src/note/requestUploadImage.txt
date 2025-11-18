@@ -1,0 +1,36 @@
+import axios from "axios";
+import { config } from "../configs/config";
+
+export const request = async (url, method = "get", data = {}) => {
+  let headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  if (data instanceof FormData) {
+    headers["Content-Type"] = "multipart/form-data";
+  }
+
+  return await axios({
+    url: config.base_url + url,
+    method: method,
+    data: data,
+    headers,
+  })
+    .then((res) => {
+      console.log("Respone Data : ", res);
+      return res.data;
+    })
+    .catch((error) => {
+      console.log("Error : ", error);
+
+      const resError = error?.respone;
+
+      if (resError) {
+        const status = resError?.status;
+        if (status === 500) {
+          console.log("External Error");
+        }
+      }
+    });
+};

@@ -1,0 +1,148 @@
+import { forwardRef } from "react";
+import logo from "../../assets/logo/logo.png";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { config } from "@/util/configs/config";
+import { Image } from "lucide-react";
+import { useSelector } from "react-redux";
+import { Badge } from "../ui/badge";
+
+const Invoice = forwardRef((prop, ref) => {
+  const cart = useSelector((state) => state.cart);
+
+  const item = cart.reduce((acc, item) => acc + Number(item.qty), 0);
+  const originalPrice = cart
+    .reduce((acc, item) => acc + Number(item?.price) * Number(item?.qty), 0)
+    .toFixed(2);
+
+  const discountPrice = cart
+    .reduce(
+      (acc, item) =>
+        acc +
+        ((Number(item?.discount) * Number(item?.price)) / 100) *
+          Number(item?.qty),
+      0
+    )
+    .toFixed(2);
+  const total = originalPrice - discountPrice;
+  const tbl_header = [
+    "No",
+    "Name",
+    "Description",
+    "Category",
+    "Brand",
+    "Quantity",
+    "Price",
+    "Discount",
+    "Image",
+  ];
+  return (
+    <div ref={ref} className="px-10 py-5">
+      <div className="flex justify-between items-center border-b">
+        <div>
+          <h1>Invoice</h1>
+          <p>#inv-{Date.now()}</p>
+          <p>Date {new Date().toLocaleDateString()}</p>
+        </div>
+        <div className="w-30 h-30">
+          <img className="w-[100%] h-[100%]" src={logo} alt="logo" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2">
+        <div className="">
+          <h1 className="font-semibold mb-2 mt-3">Form</h1>
+          <p>ICT Center</p>
+          <p>NO.123, Phnom Penh, Cambodia</p>
+          <p>Email : ict@gmail.com</p>
+          <p>Tel : 078234232</p>
+        </div>
+        <div className="">
+          <h1 className="font-semibold mb-2 mt-3">To:</h1>
+          <p>Laylonghav</p>
+          <p>Sen Sok , Cambodia</p>
+          <p>Email : Laylonghav@Gmail.com</p>
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {tbl_header.map((item, index) => (
+                <TableHead key={index}>{item}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.isArray(cart) &&
+              cart?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{item?.name}</TableCell>
+                  {/* <TableCell>{item?.description}</TableCell> */}
+                  <TableCell>{item?.category?.name}</TableCell>
+                  <TableCell>{item?.brand?.name}</TableCell>
+                  <TableCell>{item?.qty}</TableCell>
+                  <TableCell>${item?.price}</TableCell>
+                  <TableCell>{item?.discount}%</TableCell>
+                  <TableCell>
+                    <Badge variant={item?.status ? "default" : "socendory"}>
+                      {item?.status ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {item?.image ? (
+                      <div className="w-28 h-28 ">
+                        <img
+                          className="w-[100%] h-[100%] bg-gray-200 rounded-xl p-3"
+                          src={config.image_url + item?.image}
+                          alt={`pic ${item?.name}`}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-28 h-28 ">
+                        <div className="w-[100%] h-[100%] bg-gray-200 rounded-xl p-3 flex items-center justify-center">
+                          <Image />
+                        </div>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="mt-10 flex justify-end">
+        <div className="mt-5 px-2 space-y-2 w-72 ">
+          <div className="flex justify-between border-b">
+            <span>Item</span>
+            <span>{item}</span>
+          </div>
+          <div className="flex justify-between border-b">
+            <span>Origanal</span>
+            <span>${originalPrice}</span>
+          </div>
+          <div className="flex justify-between border-b">
+            <span>Discount price</span>
+            <span>${discountPrice}</span>
+          </div>
+          <div className="flex justify-between border-b">
+            <span>Total</span>
+            <span>${total}</span>
+          </div>
+        </div>
+      </div>
+      <div className="border-t pt-2 mt-5">
+        <p>Thank you for your business.</p>
+      </div>
+    </div>
+  );
+});
+
+export default Invoice;
