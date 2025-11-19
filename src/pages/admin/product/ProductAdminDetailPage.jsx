@@ -1,5 +1,3 @@
-
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -453,7 +451,8 @@ export default function ProductAdminDetailPage() {
                         <div className="w-28 h-28 ">
                           <img
                             className="w-[100%] h-[100%] bg-gray-200 rounded-xl p-3"
-                            src={config.image_url + item?.image}
+                            // src={config.image_url + item?.image}
+                            src={item?.image_url}
                             alt={`pic ${item?.name}`}
                           />
                         </div>

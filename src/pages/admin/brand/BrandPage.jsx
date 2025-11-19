@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axios from "axios";
+import { request } from "@/util/request/request";
 import { Edit, Plus, Search, SearchSlash, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -36,11 +36,11 @@ export default function BrandPage() {
 
   const fetchingData = async () => {
     setLoading(true);
-    const res = await axios.get("http://127.0.0.1:8000/api/brand");
+    const res = await request("brand", "get");
     if (res) {
       setLoading(false);
       console.log(res);
-      setBrand(res?.data?.data);
+      setBrand(res?.data);
     }
   };
 
@@ -62,10 +62,7 @@ export default function BrandPage() {
 
     if (isEdit) {
       setLoading(true);
-      const res = await axios.put(
-        `http://127.0.0.1:8000/api/brand/${form.id}`,
-        form
-      );
+      const res = await request(`/brand/${form.id}`, "put", form);
       if (res) {
         setLoading(false);
         console.log(res);
@@ -74,7 +71,7 @@ export default function BrandPage() {
       setIsEdit(false);
     } else {
       setLoading(true);
-      const res = await axios.post("http://127.0.0.1:8000/api/brand", form);
+      const res = await request("brand", "post", form);
       if (res) {
         setLoading(false);
         console.log(res);
@@ -93,9 +90,7 @@ export default function BrandPage() {
 
   const onDelete = async (itemDelete) => {
     setLoading(true);
-    const res = await axios.delete(
-      `http://127.0.0.1:8000/api/brand/${itemDelete.id}`
-    );
+    const res = await request(`brand/${itemDelete.id}`, "delete");
     if (res) {
       setLoading(false);
       console.log(res);
@@ -122,13 +117,11 @@ export default function BrandPage() {
           />
           <Button
             onClick={async () => {
-              const res = await axios.get(
-                `http://127.0.0.1:8000/api/brand/search/?q=${query}`
-              );
+              const res = await request(`brand/search/?q=${query}`, "get");
               if (res) {
                 setLoading(false);
                 console.log(res);
-                setBrand(res?.data?.data);
+                setBrand(res?.data);
               }
             }}
           >
